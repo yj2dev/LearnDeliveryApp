@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useRef, useState} from 'react';
 import {
   View,
   Text,
@@ -8,26 +8,45 @@ import {
   StyleSheet,
 } from 'react-native';
 import DeviceInfo from 'react-native-device-info';
+import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import {RootStackParamList} from '../../App';
 
-function SignIn() {
+type SignInScreenProps = NativeStackScreenProps<RootStackParamList, 'SignIn'>;
+function SignIn({navigation}: SignInScreenProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const doneInput = email || password;
+  const doneInput = email && password;
+  const emailRef = useRef<TextInput | null>(null);
+  const passwordRef = useRef<TextInput | null>(null);
 
   const onChangeEmail = useCallback(text => {
-    setEmail(text);
+    setEmail(text.trim());
   }, []);
 
   const onChangePassword = useCallback(text => {
-    setPassword(text);
+    setPassword(text.trim());
   }, []);
 
   const onSubmit = useCallback(() => {
-    Alert.alert('다시해', '이메일이 그게 맞냐?');
-  }, []);
+    // console.log(email);
+    // console.log(password);
+
+    if (!email || !email.trim()) {
+      return Alert.alert('알림', '이메일을 입력해주세요.');
+    }
+    if (!password || !password.trim()) {
+      return Alert.alert('알림', '비밀번호를 입력해주세요.');
+    }
+
+    Alert.alert('알림', '로그인이 완료되었습니다.');
+  }, [email, password]);
+
+  const toSignUp = useCallback(() => {
+    navigation.navigate('SignUp');
+  }, [navigation]);
 
   DeviceInfo.getPhoneNumber().then(phoneNumber => {
-    console.log('phoneNumber >> ', phoneNumber);
+    // console.log('phoneNumber >> ', phoneNumber);
     // Android: null return: no permission, empty string: unprogrammed or empty SIM1, e.g. "+15555215558": normal return value
   });
   return (
@@ -35,15 +54,21 @@ function SignIn() {
       <Text style={styles.label}>번호 내놔</Text>
       {/*<Text style={styles.label}>{DeviceInfo.getPhoneNumber()}</Text>*/}
       <View style={styles.inputWrapper}>
-        <Text style={styles.label}>로그인</Text>
+        <Text style={styles.label}>이메일</Text>
         <TextInput
           style={styles.textInput}
           placeholder="이메일을 입력해주세요."
           onChangeText={onChangeEmail}
           value={email}
           importantForAutofill="yes"
+          keyboardType="email-address"
           autoComplete="email"
           textContentType="emailAddress"
+          onSubmitEditing={() => {
+            passwordRef.current?.focus();
+          }}
+          blurOnSubmit={false}
+          ref={emailRef}
         />
       </View>
       <View style={styles.inputWrapper}>
@@ -57,6 +82,8 @@ function SignIn() {
           importantForAutofill="yes"
           autoComplete="password"
           textContentType="password"
+          onSubmitEditing={onSubmit}
+          ref={passwordRef}
         />
       </View>
       <View style={styles.buttonZone}>
@@ -70,7 +97,7 @@ function SignIn() {
           disabled={!doneInput}>
           <Text style={styles.loginButtonText}>로그인</Text>
         </Pressable>
-        <Pressable>
+        <Pressable onPress={toSignUp}>
           <Text>회원가입하기</Text>
         </Pressable>
       </View>
