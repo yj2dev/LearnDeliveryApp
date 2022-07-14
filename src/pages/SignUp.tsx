@@ -1,5 +1,6 @@
 import React, {useCallback, useRef, useState} from 'react';
 import {
+  ActivityIndicator,
   Alert,
   Platform,
   Pressable,
@@ -11,10 +12,13 @@ import {
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../App';
 import DismissKeyboardView from '../components/DismissKeyboardView';
+import axios, {AxiosError} from 'axios';
+import Config from 'react-native-config';
 
 type SignUpScreenProps = NativeStackScreenProps<RootStackParamList, 'SignUp'>;
 
 function SignUp({navigation}: SignUpScreenProps) {
+  const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
@@ -31,7 +35,7 @@ function SignUp({navigation}: SignUpScreenProps) {
   const onChangePassword = useCallback(text => {
     setPassword(text.trim());
   }, []);
-  const onSubmit = useCallback(() => {
+  const onSubmit = useCallback(async () => {
     if (!email || !email.trim()) {
       return Alert.alert('알림', '이메일을 입력해주세요.');
     }
@@ -54,13 +58,51 @@ function SignUp({navigation}: SignUpScreenProps) {
         '비밀번호는 영문,숫자,특수문자($@^!%*#?&)를 모두 포함하여 8자 이상 입력해야합니다.',
       );
     }
-    console.log(email, name, password);
+    console.log('SignUp INFO >> ', email, name, password);
     Alert.alert('알림', '회원가입 되었습니다.');
-  }, [email, name, password]);
 
+    try {
+      setLoading(true);
+      const response = await axios.post(
+        // `${!__DEV__ ? 'real-url' : '183.105.103.251:3105/user'}`,
+        `${Config.API_URL}/user`,
+        {email, name, password},
+        {headers: {}},
+      );
+      console.log('response >> ', response);
+    } catch (error) {
+      const errorResponse = (error as AxiosError).response;
+      console.error(errorResponse);
+      // console.error(errorResponse.data.message);
+      // if (errorResponse) {
+      //   Alert.alert('알림', errorResponse.data.message);
+      // }
+    } finally {
+      setLoading(false);
+    }
+  }, [email, name, password]);
+  console.log('회원가입');
+  console.log('Config.API_URL >> ', Config.API_URL);
   const canGoNext = email && name && password;
+
+  const onPressCheckAPI = useCallback(() => {
+    console.log('백앤드 요청');
+    axios
+      // .get('http://localhost:3105')
+      .get('http://10.0.2.2:3105')
+      .then(res => {
+        // console.log('res >> ', res);
+        console.log('res data >> ', res.data);
+      })
+      .catch(err => {
+        console.log('err >> ', err);
+      });
+  }, []);
   return (
     <DismissKeyboardView>
+      <Pressable onPress={onPressCheckAPI}>
+        <Text>요청 확인</Text>
+      </Pressable>
       <View style={styles.inputWrapper}>
         <Text style={styles.label}>이메일</Text>
         <TextInput
@@ -117,9 +159,13 @@ function SignUp({navigation}: SignUpScreenProps) {
               ? StyleSheet.compose(styles.loginButton, styles.loginButtonActive)
               : styles.loginButton
           }
-          disabled={!canGoNext}
+          disabled={!canGoNext || loading}
           onPress={onSubmit}>
-          <Text style={styles.loginButtonText}>회원가입</Text>
+          {loading ? (
+            <ActivityIndicator color="white" />
+          ) : (
+            <Text style={styles.loginButtonText}>회원가입</Text>
+          )}
         </Pressable>
       </View>
     </DismissKeyboardView>
