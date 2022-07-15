@@ -1,10 +1,12 @@
 import {createSlice} from '@reduxjs/toolkit';
 
+// 타입스크립트가 타입 추론이 어려울 때 인터페이스로 따로 만들어준다. (EX. 객체, 배열은 내부가 어떤 타입인지 추론이 어렵다)
+
 const initialState = {
   name: '',
   email: '',
   accessToken: '',
-  refreshToken: '',
+  money: 0,
 };
 const userSlice = createSlice({
   name: 'user',
@@ -17,6 +19,9 @@ const userSlice = createSlice({
     },
     setName(state, action) {
       state.name = action.payload;
+    },
+    setMoney(state, action) {
+      state.money = action.payload;
     },
   },
   extraReducers: builder => {},
