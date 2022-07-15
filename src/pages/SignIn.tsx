@@ -81,13 +81,18 @@ function SignIn({navigation}: SignInScreenProps) {
     navigation.navigate('SignUp');
   }, [navigation]);
 
-  DeviceInfo.getPhoneNumber().then(phoneNumber => {
-    // console.log('phoneNumber >> ', phoneNumber);
-    // Android: null return: no permission, empty string: unprogrammed or empty SIM1, e.g. "+15555215558": normal return value
-  });
+  const onPressGetPhoneNumber = () => {
+    DeviceInfo.getPhoneNumber().then(phoneNumber => {
+      console.log('phoneNumber >> ', phoneNumber);
+      // Android: null return: no permission, empty string: unprogrammed or empty SIM1, e.g. "+15555215558": normal return value
+    });
+  };
+
   return (
     <View>
-      <Text style={styles.label}>번호 내놔</Text>
+      <Text style={styles.label} onPress={onPressGetPhoneNumber}>
+        번호 내놔
+      </Text>
       {/*<Text style={styles.label}>{DeviceInfo.getPhoneNumber()}</Text>*/}
       <View style={styles.inputWrapper}>
         <Text style={styles.label}>이메일</Text>
