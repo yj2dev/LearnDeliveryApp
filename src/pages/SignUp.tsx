@@ -10,7 +10,7 @@ import {
   View,
 } from 'react-native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../../App';
+import {RootStackParamList} from '../../AppInner';
 import DismissKeyboardView from '../components/DismissKeyboardView';
 import axios, {AxiosError} from 'axios';
 import Config from 'react-native-config';
@@ -59,7 +59,6 @@ function SignUp({navigation}: SignUpScreenProps) {
       );
     }
     console.log('SignUp INFO >> ', email, name, password);
-    Alert.alert('알림', '회원가입 되었습니다.');
 
     try {
       setLoading(true);
@@ -70,19 +69,21 @@ function SignUp({navigation}: SignUpScreenProps) {
         {headers: {}},
       );
       console.log('response >> ', response);
+      console.log('response data >> ', response.data);
+      Alert.alert('알림', '회원가입이 완료 되었습니다.', [
+        {text: '확인', onPress: () => navigation.navigate('SignIn')},
+      ]);
     } catch (error) {
       const errorResponse = (error as AxiosError).response;
-      console.error(errorResponse);
-      // console.error(errorResponse.data.message);
-      // if (errorResponse) {
-      //   Alert.alert('알림', errorResponse.data.message);
-      // }
+      if (errorResponse) {
+        Alert.alert('알림', (errorResponse as any).data.message);
+      }
     } finally {
       setLoading(false);
     }
-  }, [email, name, password]);
-  console.log('회원가입');
-  console.log('Config.API_URL >> ', Config.API_URL);
+  }, [navigation, loading, email, name, password]);
+  // console.log('회원가입');
+  // console.log('Config.API_URL >> ', Config.API_URL);
   const canGoNext = email && name && password;
 
   const onPressCheckAPI = useCallback(() => {
